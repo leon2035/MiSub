@@ -4,7 +4,7 @@
  * 严格遵循 Surge 官方文档 https://manual.nssurge.com/policy/proxy.html
  *
  * 支持协议：SS、VMess、Trojan、Snell、TUIC、Hysteria2、AnyTLS、WireGuard、HTTP(S)、SOCKS5
- * 注意：Surge 不支持 VLESS 协议，VLESS 节点会被跳过
+ * 注意：Surge 不支持 VLESS、Mieru 协议，这类节点会被跳过
  */
 
 import { urlToClashProxy, urlsToClashProxies } from '../../utils/url-to-clash.js';
