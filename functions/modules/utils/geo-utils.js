@@ -233,6 +233,35 @@ function parseHostPort(value) {
 }
 
 /**
+ * 解析 mieru 链接的服务器与端口
+ * mieru 官方简单分享链接把端口放在 port / port-range 查询参数里，authority 中可以没有端口
+ * @param {string} nodeUrl - mieru:// 或 mierus:// 链接
+ * @returns {{server: string, port: string}}
+ */
+function parseMieruEndpoint(nodeUrl) {
+    let body = String(nodeUrl || '').replace(/^mierus?:\/\//i, '');
+    const hashIndex = body.indexOf('#');
+    if (hashIndex !== -1) body = body.slice(0, hashIndex);
+
+    const queryIndex = body.indexOf('?');
+    const authorityPart = queryIndex !== -1 ? body.slice(0, queryIndex) : body;
+    const query = queryIndex !== -1 ? body.slice(queryIndex + 1) : '';
+
+    const atIndex = authorityPart.lastIndexOf('@');
+    const { server, port } = parseHostPort(atIndex !== -1 ? authorityPart.slice(atIndex + 1) : authorityPart);
+    if (port) return { server, port };
+
+    // 端口范围取起始端口，便于展示与连通性测试
+    const portMatch = query.match(/(?:^|&)(?:port|port-range|portRange|ports)=([^&]+)/i);
+    if (!portMatch) return { server, port: '' };
+
+    let rawPort = portMatch[1];
+    try { rawPort = decodeURIComponent(rawPort); } catch (e) { /* 保留原始值 */ }
+    rawPort = rawPort.trim();
+    return { server, port: rawPort.includes('-') ? rawPort.split('-')[0] : rawPort };
+}
+
+/**
  * 从节点名称中识别地区
  * @param {string} nodeName - 节点名称
  * @returns {string} 识别出的地区，如未识别返回"其他"
@@ -372,6 +401,11 @@ export function parseNodeInfo(nodeUrl) {
                 nodeName = paramsMatch[2];
             }
         }
+    }
+
+    // mieru 链接的通用兜底会取到用户名，这里改用服务器地址
+    if (!nodeName && /^mierus?$/i.test(protocol)) {
+        nodeName = parseMieruEndpoint(nodeUrl).server || '';
     }
 
     // 如果没有名称，从URL生成一个
@@ -613,6 +647,13 @@ port = parts[1];
         }
     } catch (e) {
         console.error('Error extracting server/port:', e);
+    }
+
+    // mieru 的端口可以只写在 port / port-range 查询参数里，且通用分支在缺少端口时不会填 server
+    if (/^mierus?$/i.test(protocol) && (!server || !port)) {
+        const endpoint = parseMieruEndpoint(nodeUrl);
+        server = server || endpoint.server;
+        port = port || endpoint.port;
     }
 
     // 识别地区

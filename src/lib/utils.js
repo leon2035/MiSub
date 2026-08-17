@@ -143,6 +143,41 @@ export function extractHostAndPort(url) {
             return { host: nodeConfig.add || '', port: String(nodeConfig.port || '') };
         }
 
+        // --- Mieru 专用处理：端口可能只写在 port / port-range 查询参数里 ---
+        if (protocol === 'mieru' || protocol === 'mierus') {
+            const atIndexMieru = mainPart.lastIndexOf('@');
+            const authorityAndQuery = atIndexMieru !== -1 ? mainPart.substring(atIndexMieru + 1) : mainPart;
+            const queryIndexMieru = authorityAndQuery.indexOf('?');
+            const authority = queryIndexMieru !== -1 ? authorityAndQuery.substring(0, queryIndexMieru) : authorityAndQuery;
+            const query = queryIndexMieru !== -1 ? authorityAndQuery.substring(queryIndexMieru + 1) : '';
+
+            let host = authority;
+            let port = '';
+            if (authority.startsWith('[')) {
+                const bracketEnd = authority.lastIndexOf(']');
+                if (bracketEnd !== -1) {
+                    host = authority.substring(1, bracketEnd);
+                    const rest = authority.substring(bracketEnd + 1);
+                    if (rest.startsWith(':')) port = rest.substring(1);
+                }
+            } else {
+                const authorityParts = authority.split(':');
+                if (authorityParts.length === 2) {
+                    host = authorityParts[0];
+                    port = authorityParts[1];
+                }
+            }
+
+            if (!port && query) {
+                const params = new URLSearchParams(query);
+                const candidate = (params.get('port') || params.get('port-range') || params.get('portRange') || params.get('ports') || '').trim();
+                // 端口范围取起始端口用于展示与连通性测试
+                port = candidate.includes('-') ? candidate.split('-')[0] : candidate;
+            }
+
+            return { host, port };
+        }
+
         let decoded = false;
         // --- SS/SSR Base64 解码处理 ---
         if ((protocol === 'ss' || protocol === 'ssr') && mainPart.indexOf('@') === -1) {
