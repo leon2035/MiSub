@@ -359,9 +359,12 @@ export function parseNodeInfo(nodeUrl) {
         }
     }
 
-    // [增强] 如果 Hash 中没有名称，尝试从 URL 参数中提取 (支持 remarks, des, remark)
+    // [增强] 如果 Hash 中没有名称，尝试从 URL 参数中提取 (支持 remarks, des, remark；mieru 额外支持 profile)
     if (!nodeName) {
-        const paramsMatch = nodeUrl.match(/[?&](remarks|des|remark)=([^&#]+)/);
+        const nameParamPattern = /^mierus?:\/\//i.test(nodeUrl)
+            ? /[?&](remarks|des|remark|profile)=([^&#]+)/
+            : /[?&](remarks|des|remark)=([^&#]+)/;
+        const paramsMatch = nodeUrl.match(nameParamPattern);
         if (paramsMatch && paramsMatch[2]) {
             try {
                 nodeName = decodeURIComponent(paramsMatch[2]);

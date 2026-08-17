@@ -65,6 +65,21 @@ export function extractNodeName(url) {
                     }
                 }
                 return '';
+            case 'mieru':
+            case 'mierus': {
+                // 官方简单分享链接没有 #fragment 时，用 profile 作为节点名称
+                const profileMatch = mainPart.match(/[?&]profile=([^&]+)/);
+                if (profileMatch) {
+                    try {
+                        return decodeURIComponent(profileMatch[1]).trim();
+                    } catch {
+                        return profileMatch[1].trim();
+                    }
+                }
+                const atIndexMieru = mainPart.indexOf('@');
+                if (atIndexMieru !== -1) return mainPart.substring(atIndexMieru + 1).split(/[:?]/)[0] || '';
+                return '';
+            }
             default:
                 if (url.startsWith('http')) return new URL(url).hostname;
                 return '';

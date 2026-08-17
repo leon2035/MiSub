@@ -651,6 +651,25 @@ proxies:
         expect(parsed).not.toHaveProperty('mtu');
         expect(parsed).not.toHaveProperty('port-range');
 
+        // 没有 #fragment 时用 profile 作为节点名称
+        const noFragment = urlToClashProxy('mierus://user:pass@211.136.162.182?udp=1&transport=tcp&port=3455&profile=JP-NB-CM');
+        expect(noFragment).toMatchObject({
+            name: 'JP-NB-CM',
+            type: 'mieru',
+            server: '211.136.162.182',
+            port: 3455,
+            transport: 'TCP',
+            udp: true
+        });
+        expect(noFragment).not.toHaveProperty('profile');
+
+        // 既没有 fragment 也没有 profile 时回退到 Mieru-<server>
+        expect(urlToClashProxy('mierus://user:pass@1.2.3.4?port=3455')).toMatchObject({ name: 'Mieru-1.2.3.4' });
+
+        // 合规的节点名会写回 profile，含中文/emoji 的名称回退为 misub
+        expect(convertClashProxyToUrl({ ...noFragment, name: 'JP-NB-CM' })).toContain('profile=JP-NB-CM');
+        expect(convertClashProxyToUrl({ ...noFragment, name: '日本 01' })).toContain('profile=misub');
+
         // mieru:// 标准分享链接是 base64 protobuf，无法解析时应跳过而不是产生半成品节点
         expect(urlToClashProxy('mieru://CpsBCgdkZWZhdWx0ElgKBWJhb3pp')).toBeNull();
 

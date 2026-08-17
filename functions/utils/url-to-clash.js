@@ -1295,8 +1295,11 @@ function parseMieruUrl(url) {
         const transportRaw = params.get('transport') || params.get('protocol') || '';
         const transport = String(transportRaw).trim().toUpperCase() === 'UDP' ? 'UDP' : 'TCP';
 
+        // 没有 #fragment 时退回官方链接里的 profile 名称（URLSearchParams 已完成解码）
+        const profileName = (params.get('profile') || '').trim();
+
         const proxy = {
-            name: name || `Mieru-${server}`,
+            name: name || profileName || `Mieru-${server}`,
             type: 'mieru',
             server,
             ...(portRange ? { 'port-range': portRange } : { port }),
@@ -1321,6 +1324,9 @@ function parseMieruUrl(url) {
 
         const trafficPattern = params.get('traffic-pattern') || params.get('trafficPattern');
         if (trafficPattern) proxy['traffic-pattern'] = trafficPattern;
+
+        const udpParam = params.get('udp');
+        if (udpParam !== null) proxy.udp = /^(1|true|yes)$/i.test(udpParam.trim());
 
         return proxy;
     } catch (e) {

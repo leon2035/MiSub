@@ -69,6 +69,11 @@ const extractNodeName = (url) => {
     if (hashIndex !== -1) {
       return decodeURIComponent(url.slice(hashIndex + 1)) || null;
     }
+    // mieru 官方简单分享链接没有 fragment，用 profile 作为节点名称
+    if (/^mierus?:\/\//i.test(url)) {
+      const profileMatch = url.match(/[?&]profile=([^&#]+)/);
+      if (profileMatch) return decodeURIComponent(profileMatch[1]).trim() || null;
+    }
   } catch {
     return null;
   }

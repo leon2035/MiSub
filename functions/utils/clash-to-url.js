@@ -37,7 +37,9 @@ function convertMieruProxyToUrl(proxy, name) {
     const transport = String(proxy.transport || '').trim().toUpperCase() === 'UDP' ? 'UDP' : 'TCP';
 
     const params = [];
-    params.push(`profile=${encodeURIComponent(proxy.profile || 'misub')}`);
+    // mieru 的 profile 名称仅允许 A-Za-z0-9_-，节点名不合规时回退到 misub
+    const safeProfile = [proxy.profile, name].find(value => /^[A-Za-z0-9_-]+$/.test(String(value || '')));
+    params.push(`profile=${safeProfile || 'misub'}`);
     // mieru 要求 port 与 protocol 成对出现且数量一致
     params.push(`port=${encodeURIComponent(hasPortRange ? portRange : String(port))}`);
     params.push(`protocol=${transport}`);
@@ -46,6 +48,7 @@ function convertMieruProxyToUrl(proxy, name) {
     if (handshakeMode) params.push(`handshake-mode=${encodeURIComponent(handshakeMode)}`);
     const trafficPattern = proxy['traffic-pattern'] || proxy.trafficPattern;
     if (trafficPattern) params.push(`traffic-pattern=${encodeURIComponent(trafficPattern)}`);
+    if (proxy.udp === true) params.push('udp=1');
 
     let serverAddr = server;
     if (serverAddr.includes(':') && !serverAddr.startsWith('[')) serverAddr = `[${serverAddr}]`;
