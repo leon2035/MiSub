@@ -56,6 +56,7 @@ It is designed for personal and small-team usage: simple operations, clear clien
 - Snell
 - WireGuard
 - AnyTLS
+- Mieru (Clash/Mihomo output only)
 - HTTPS
 - SOCKS5 / SOCKS5-TLS
 

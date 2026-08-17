@@ -128,7 +128,7 @@ export async function handleCronTrigger(env) {
     const CONCURRENCY = 6;
     const TIMEOUT = 15000;
 
-    const nodeRegex = /^(ss|ssr|vmess|vless|trojan|hysteria2?|hy|hy2|tuic|anytls|socks5|socks):\/\//gm;
+    const nodeRegex = /^(ss|ssr|vmess|vless|trojan|hysteria2?|hy|hy2|tuic|anytls|mierus?|socks5|socks):\/\//gm;
     let changesMade = false;
     let updatedCount = 0;
     let failedCount = 0;

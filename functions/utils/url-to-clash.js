@@ -1194,6 +1194,142 @@ function parseAnytlsUrl(url) {
 }
 
 /**
+ * 归一化 mieru 的枚举参数（如 low -> MULTIPLEXING_LOW）
+ * @param {string} value - 原始值
+ * @param {string} prefix - 枚举前缀（MULTIPLEXING / HANDSHAKE）
+ * @param {string[]} allowed - 允许的完整枚举值
+ * @returns {string} 归一化结果，非法值返回空串
+ */
+function normalizeMieruEnum(value, prefix, allowed) {
+    if (!value) return '';
+    let normalized = String(value).trim().toUpperCase().replace(/-/g, '_');
+    if (!normalized.startsWith(`${prefix}_`)) normalized = `${prefix}_${normalized}`;
+    return allowed.includes(normalized) ? normalized : '';
+}
+
+/**
+ * 将 mieru URL 转换为 Clash 代理对象
+ * 支持官方简单分享链接 mierus://user:pass@host?port=xxx&protocol=TCP，
+ * 以及把端口写在 authority 里的 mieru://user:pass@host:port 形式。
+ * 官方 mieru:// 标准链接是 base64 protobuf，无法在此解析，直接跳过。
+ * @param {string} url - mieru URL
+ * @returns {Object|null} Clash 代理对象
+ */
+function parseMieruUrl(url) {
+    try {
+        const scheme = url.match(/^mierus?:\/\//i);
+        if (!scheme) return null;
+
+        const body = url.substring(scheme[0].length);
+        const queryIndex = body.indexOf('?');
+        const hashIndex = body.indexOf('#');
+        let authority = body;
+        if (queryIndex !== -1) {
+            authority = body.substring(0, queryIndex);
+        } else if (hashIndex !== -1) {
+            authority = body.substring(0, hashIndex);
+        }
+
+        const atIndex = authority.lastIndexOf('@');
+        // 没有 userinfo 说明是 base64 protobuf 的标准链接，不做解析
+        if (atIndex === -1) return null;
+
+        const userInfo = authority.substring(0, atIndex);
+        const colonIndex = userInfo.indexOf(':');
+        if (colonIndex === -1) return null;
+        let username = userInfo.substring(0, colonIndex);
+        let password = userInfo.substring(colonIndex + 1);
+        try { username = decodeURIComponent(username); } catch { }
+        try { password = decodeURIComponent(password); } catch { }
+        // mihomo 要求 username/password 均非空
+        if (!username || !password) return null;
+
+        const hostPortStr = authority.substring(atIndex + 1);
+        if (!hostPortStr) return null;
+
+        let server = hostPortStr;
+        let port = NaN;
+        if (hostPortStr.startsWith('[')) {
+            const closeBracket = hostPortStr.indexOf(']');
+            if (closeBracket === -1) return null;
+            server = hostPortStr.substring(1, closeBracket);
+            const after = hostPortStr.substring(closeBracket + 1);
+            if (after.startsWith(':')) port = parseInt(after.substring(1), 10);
+        } else {
+            const parts = hostPortStr.split(':');
+            if (parts.length === 2) {
+                server = parts[0];
+                port = parseInt(parts[1], 10);
+            }
+        }
+        if (!server) return null;
+
+        const params = parseQueryParams(url);
+        const name = extractName(url);
+
+        // 官方链接把端口放在 query 中，且可以是范围（如 9998-9999）
+        let portRange = '';
+        const portCandidates = [
+            ...params.getAll('port'),
+            params.get('port-range'),
+            params.get('portRange'),
+            params.get('ports')
+        ];
+        for (const candidate of portCandidates) {
+            if (!candidate) continue;
+            const value = String(candidate).trim();
+            if (/^\d+-\d+$/.test(value)) {
+                if (!portRange) portRange = value;
+            } else if (/^\d+$/.test(value) && !Number.isFinite(port)) {
+                port = parseInt(value, 10);
+            }
+        }
+
+        // mihomo 中 port 与 port-range 互斥，端口范围优先
+        if (portRange) {
+            port = NaN;
+        } else if (!Number.isFinite(port) || port < 1 || port > 65535) {
+            return null;
+        }
+
+        const transportRaw = params.get('transport') || params.get('protocol') || '';
+        const transport = String(transportRaw).trim().toUpperCase() === 'UDP' ? 'UDP' : 'TCP';
+
+        const proxy = {
+            name: name || `Mieru-${server}`,
+            type: 'mieru',
+            server,
+            ...(portRange ? { 'port-range': portRange } : { port }),
+            transport,
+            username,
+            password
+        };
+
+        const multiplexing = normalizeMieruEnum(
+            params.get('multiplexing') || params.get('mux'),
+            'MULTIPLEXING',
+            ['MULTIPLEXING_OFF', 'MULTIPLEXING_LOW', 'MULTIPLEXING_MIDDLE', 'MULTIPLEXING_HIGH']
+        );
+        if (multiplexing) proxy.multiplexing = multiplexing;
+
+        const handshakeMode = normalizeMieruEnum(
+            params.get('handshake-mode') || params.get('handshakeMode'),
+            'HANDSHAKE',
+            ['HANDSHAKE_STANDARD', 'HANDSHAKE_NO_WAIT']
+        );
+        if (handshakeMode) proxy['handshake-mode'] = handshakeMode;
+
+        const trafficPattern = params.get('traffic-pattern') || params.get('trafficPattern');
+        if (trafficPattern) proxy['traffic-pattern'] = trafficPattern;
+
+        return proxy;
+    } catch (e) {
+        console.error('解析 Mieru URL 失败:', e);
+        return null;
+    }
+}
+
+/**
  * 将 HTTPS URL 转换为 Clash 代理对象
  * @param {string} url - HTTPS URL
  * @returns {Object|null} Clash 代理对象
@@ -1449,6 +1585,8 @@ export function urlToClashProxy(url) {
         return parseWireguardUrl(url);
     } else if (lowerUrl.startsWith('anytls://')) {
         return parseAnytlsUrl(url);
+    } else if (lowerUrl.startsWith('mierus://') || lowerUrl.startsWith('mieru://')) {
+        return parseMieruUrl(url);
     } else if (lowerUrl.startsWith('https://')) {
         return parseHttpsUrl(url);
     } else if (lowerUrl.startsWith('socks5://')) {

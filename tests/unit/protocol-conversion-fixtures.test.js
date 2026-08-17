@@ -359,6 +359,30 @@ describe('protocol conversion fixtures', () => {
             },
             {
                 proxy: {
+                    name: 'Fixture Mieru',
+                    type: 'mieru',
+                    server: 'mieru.example.com',
+                    port: 2999,
+                    transport: 'TCP',
+                    username: 'mieru-user',
+                    password: 'mieru-pass',
+                    multiplexing: 'MULTIPLEXING_LOW',
+                    'handshake-mode': 'HANDSHAKE_NO_WAIT'
+                },
+                expected: {
+                    name: 'Fixture Mieru',
+                    type: 'mieru',
+                    server: 'mieru.example.com',
+                    port: 2999,
+                    transport: 'TCP',
+                    username: 'mieru-user',
+                    password: 'mieru-pass',
+                    multiplexing: 'MULTIPLEXING_LOW',
+                    'handshake-mode': 'HANDSHAKE_NO_WAIT'
+                }
+            },
+            {
+                proxy: {
                     name: 'Fixture WireGuard',
                     type: 'wireguard',
                     server: 'wg.example.com',
@@ -608,6 +632,56 @@ proxies:
             down: '200 Mbps',
             'fast-open': true
         });
+    });
+
+    it('parses mieru simple share links and keeps port-range exclusive from port', () => {
+        // 官方 mierus:// 简单分享链接：端口写在查询参数里，mtu 不是 mihomo 字段
+        const officialUrl = 'mierus://baozi:manlianpenfen@1.2.3.4?profile=default&mtu=1400&multiplexing=MULTIPLEXING_HIGH&port=6666&protocol=TCP#Mieru%20Simple';
+        const parsed = urlToClashProxy(officialUrl);
+        expect(parsed).toMatchObject({
+            name: 'Mieru Simple',
+            type: 'mieru',
+            server: '1.2.3.4',
+            port: 6666,
+            transport: 'TCP',
+            username: 'baozi',
+            password: 'manlianpenfen',
+            multiplexing: 'MULTIPLEXING_HIGH'
+        });
+        expect(parsed).not.toHaveProperty('mtu');
+        expect(parsed).not.toHaveProperty('port-range');
+
+        // mieru:// 标准分享链接是 base64 protobuf，无法解析时应跳过而不是产生半成品节点
+        expect(urlToClashProxy('mieru://CpsBCgdkZWZhdWx0ElgKBWJhb3pp')).toBeNull();
+
+        // 端口范围：mihomo 中 port 与 port-range 互斥
+        const rangeUrl = convertClashProxyToUrl({
+            name: 'Mieru Range',
+            type: 'mieru',
+            server: 'mieru.example.com',
+            'port-range': '2090-2099',
+            transport: 'UDP',
+            username: 'user',
+            password: 'pass'
+        });
+        expect(rangeUrl).toContain('mierus://user:pass@mieru.example.com:2090?');
+        expect(rangeUrl).toContain('port=2090-2099');
+        expect(rangeUrl).toContain('protocol=UDP');
+
+        const rangeProxy = urlToClashProxy(rangeUrl);
+        expect(rangeProxy).toMatchObject({
+            type: 'mieru',
+            server: 'mieru.example.com',
+            'port-range': '2090-2099',
+            transport: 'UDP'
+        });
+        expect(rangeProxy).not.toHaveProperty('port');
+
+        const config = yaml.load(generateBuiltinClashConfig([officialUrl, rangeUrl].join('\n'), { addFlagEmoji: false }));
+        expect(config.proxies).toHaveLength(2);
+        expect(config.proxies[0]).toMatchObject({ type: 'mieru', port: 6666, transport: 'TCP' });
+        expect(config.proxies[1]).toMatchObject({ type: 'mieru', 'port-range': '2090-2099', transport: 'UDP' });
+        expect(config.proxies[1].port).toBeUndefined();
     });
 
     it('documents one-way exports whose emitted schemes are not parsed back yet', () => {

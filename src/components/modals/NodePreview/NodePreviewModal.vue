@@ -277,7 +277,7 @@ const loadNodes = async () => {
 
     // 更新可用筛选选项
     // 协议类型按常见程度排序
-    const protocolOrder = ['vmess', 'vless', 'trojan', 'ss', 'ssr', 'hysteria2', 'tuic', 'socks5', 'anytls', 'unknown'];
+    const protocolOrder = ['vmess', 'vless', 'trojan', 'ss', 'ssr', 'hysteria2', 'tuic', 'socks5', 'anytls', 'mierus', 'mieru', 'unknown'];
     availableProtocols.value = Object.keys(protocolStats.value).sort((a, b) => {
       const aIndex = protocolOrder.indexOf(a.toLowerCase());
       const bIndex = protocolOrder.indexOf(b.toLowerCase());
@@ -358,6 +358,8 @@ const getProtocolStyle = (protocol) => {
     tuic: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
     socks5: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
     anytls: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+    mieru: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
+    mierus: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
     unknown: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
   };
   return styles[protocol] || styles.unknown;

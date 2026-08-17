@@ -262,6 +262,8 @@ HTTP 订阅源定义为 URL 以 `http` 开头的订阅项。
 - `hy2://`
 - `tuic://`
 - `anytls://`
+- `mieru://`
+- `mierus://`
 - `socks5://`
 - `socks://`
 

@@ -23,6 +23,7 @@ export const NODE_PROTOCOLS = {
     HY: 'hy',
     TUIC: 'tuic',
     ANYTLS: 'anytls',
+    MIERU: 'mieru',
     SOCKS5: 'socks5'
 };
 

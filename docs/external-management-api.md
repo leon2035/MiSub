@@ -131,6 +131,8 @@ Content-Type: application/json
   - `hy2://`
   - `tuic://`
   - `anytls://`
+  - `mieru://`
+  - `mierus://`
   - `socks5://`
   - `socks://`
   - `snell://`

@@ -28,6 +28,7 @@ const getProtocol = (url) => {
     if (!url) return 'unknown';
     const lowerUrl = url.toLowerCase();
     if (lowerUrl.startsWith('anytls://')) return 'anytls';
+    if (lowerUrl.startsWith('mierus://') || lowerUrl.startsWith('mieru://')) return 'mieru';
     if (lowerUrl.startsWith('hysteria2://') || lowerUrl.startsWith('hy2://')) return 'hysteria2';
     if (lowerUrl.startsWith('hysteria://') || lowerUrl.startsWith('hy://')) return 'hysteria';
     if (lowerUrl.startsWith('ssr://')) return 'ssr';
@@ -53,6 +54,7 @@ const protocolStyle = computed(() => {
   const p = protocol.value;
   const styles = {
     anytls: { text: 'AnyTLS', style: 'bg-slate-500/20 text-slate-500 dark:text-slate-400' },
+    mieru: { text: 'Mieru', style: 'bg-amber-500/20 text-amber-500 dark:text-amber-400' },
     vless: { text: 'VLESS', style: 'bg-blue-500/20 text-blue-500 dark:text-blue-400' },
     hysteria2: { text: 'HY2', style: 'bg-purple-500/20 text-purple-500 dark:text-purple-400' },
     hysteria: { text: 'Hysteria', style: 'bg-fuchsia-500/20 text-fuchsia-500 dark:text-fuchsia-400' },

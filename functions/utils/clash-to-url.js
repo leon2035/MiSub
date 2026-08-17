@@ -16,12 +16,55 @@ function appendHysteria2RealmParams(params, realmOpts) {
     }
 }
 
+/**
+ * 生成 mieru 官方简单分享链接（mierus://）。
+ * 端口同时写入 authority 与 port 查询参数：mieru 官方解析取 url.Hostname()，
+ * 因此 authority 中的端口不会干扰官方客户端导入，同时保持 MiSub 内部 host:port 的统一形式。
+ */
+function convertMieruProxyToUrl(proxy, name) {
+    const server = proxy.server;
+    const username = proxy.username || '';
+    const password = proxy.password || '';
+    if (!server || !username || !password) return null;
+
+    const portRange = proxy['port-range'] || proxy.portRange || '';
+    const hasPortRange = /^\d+-\d+$/.test(String(portRange));
+    const port = Number.parseInt(String(proxy.port ?? ''), 10);
+    if (!hasPortRange && !(port >= 1 && port <= 65535)) return null;
+
+    // 端口范围时用起始端口填充 authority，与 mihomo 自身的地址推导保持一致
+    const authorityPort = hasPortRange ? Number.parseInt(String(portRange).split('-')[0], 10) : port;
+    const transport = String(proxy.transport || '').trim().toUpperCase() === 'UDP' ? 'UDP' : 'TCP';
+
+    const params = [];
+    params.push(`profile=${encodeURIComponent(proxy.profile || 'misub')}`);
+    // mieru 要求 port 与 protocol 成对出现且数量一致
+    params.push(`port=${encodeURIComponent(hasPortRange ? portRange : String(port))}`);
+    params.push(`protocol=${transport}`);
+    if (proxy.multiplexing) params.push(`multiplexing=${encodeURIComponent(proxy.multiplexing)}`);
+    const handshakeMode = proxy['handshake-mode'] || proxy.handshakeMode;
+    if (handshakeMode) params.push(`handshake-mode=${encodeURIComponent(handshakeMode)}`);
+    const trafficPattern = proxy['traffic-pattern'] || proxy.trafficPattern;
+    if (trafficPattern) params.push(`traffic-pattern=${encodeURIComponent(trafficPattern)}`);
+
+    let serverAddr = server;
+    if (serverAddr.includes(':') && !serverAddr.startsWith('[')) serverAddr = `[${serverAddr}]`;
+
+    const auth = `${encodeURIComponent(username)}:${encodeURIComponent(password)}`;
+    return `mierus://${auth}@${serverAddr}:${authorityPort}?${params.join('&')}#${encodeURIComponent(name)}`;
+}
+
 export function convertClashProxyToUrl(proxy) {
     try {
         const type = (proxy.type || '').toLowerCase();
         const name = proxy.name || 'Untitled';
         const server = proxy.server;
         const port = proxy.port;
+
+        // mieru 允许只配置 port-range，需要在通用端口校验之前处理
+        if (type === 'mieru') {
+            return convertMieruProxyToUrl(proxy, name);
+        }
 
         if (!server || !port) return null;
 

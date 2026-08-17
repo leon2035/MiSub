@@ -10,7 +10,7 @@ import { extractNodeMetadata } from '../modules/utils/metadata-extractor.js';
 /**
  * 节点协议正则表达式
  */
-export const NODE_PROTOCOL_REGEX = /^(ss|ssr|vmess|vless|trojan|hysteria2?|hy|hy2|tuic|snell|anytls|socks5|socks|wireguard|naive\+https?|naive\+quic):\/\//i;
+export const NODE_PROTOCOL_REGEX = /^(ss|ssr|vmess|vless|trojan|hysteria2?|hy|hy2|tuic|snell|anytls|mierus?|socks5|socks|wireguard|naive\+https?|naive\+quic):\/\//i;
 
 function normalizeBase64(input) {
     let normalized = String(input || '').replace(/\s+/g, '').replace(/-/g, '+').replace(/_/g, '/');

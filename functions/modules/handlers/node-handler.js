@@ -12,7 +12,7 @@ import { buildFetchProxyUrl } from '../../utils/fetch-proxy-utils.js';
 import { isSuspiciousNodeCountDrop } from '../../services/node-cache-service.js';
 
 // 创建用于全局匹配的协议正则表达式
-const NODE_PROTOCOL_GLOBAL_REGEX = new RegExp('^(ss|ssr|vmess|vless|trojan|hysteria2?|hy|hy2|tuic|anytls|socks5|socks):\\/\\/', 'gm');
+const NODE_PROTOCOL_GLOBAL_REGEX = new RegExp('^(ss|ssr|vmess|vless|trojan|hysteria2?|hy|hy2|tuic|anytls|mierus?|socks5|socks):\\/\\/', 'gm');
 
 const SUBSCRIPTION_BODY_ERROR_PATTERNS = [
     /failed to fetch remote profile/i,

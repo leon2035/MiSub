@@ -23,6 +23,7 @@ const getProtocol = (url) => {
     const lowerUrl = url.toLowerCase();
     // [更新] 新增 anytls 支援
     if (lowerUrl.startsWith('anytls://')) return 'anytls';
+    if (lowerUrl.startsWith('mierus://') || lowerUrl.startsWith('mieru://')) return 'mieru';
     if (lowerUrl.startsWith('hysteria2://') || lowerUrl.startsWith('hy2://')) return 'hysteria2';
     if (lowerUrl.startsWith('hysteria://') || lowerUrl.startsWith('hy://')) return 'hysteria';
     if (lowerUrl.startsWith('ssr://')) return 'ssr';
@@ -48,6 +49,7 @@ const protocolStyle = computed(() => {
   const p = protocol.value;
   switch (p) {
     case 'anytls': return { text: 'AnyTLS', style: 'bg-slate-500/20 text-slate-500 dark:text-slate-400' };
+    case 'mieru': return { text: 'Mieru', style: 'bg-amber-500/20 text-amber-500 dark:text-amber-400' };
     case 'vless': return { text: 'VLESS', style: 'bg-blue-500/20 text-blue-500 dark:text-blue-400' };
     case 'hysteria2': return { text: 'HY2', style: 'bg-purple-500/20 text-purple-500 dark:text-purple-400' };
     case 'hysteria': return { text: 'Hysteria', style: 'bg-fuchsia-500/20 text-fuchsia-500 dark:text-fuchsia-400' };

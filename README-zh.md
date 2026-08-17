@@ -151,6 +151,7 @@
 - Snell
 - WireGuard
 - AnyTLS（Quantumult X v1.6.0+ 支持）
+- Mieru（`mierus://` / `mieru://`，仅 Clash/Mihomo 输出支持）
 - HTTPS
 - SOCKS5 / SOCKS5-TLS
 

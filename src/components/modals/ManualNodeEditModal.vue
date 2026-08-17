@@ -38,6 +38,7 @@ const getProtocol = (url) => {
   if (!url) return null;
   const lowerUrl = url.toLowerCase().trim();
   if (lowerUrl.startsWith('anytls://')) return { name: 'AnyTLS', color: 'slate' };
+  if (lowerUrl.startsWith('mierus://') || lowerUrl.startsWith('mieru://')) return { name: 'Mieru', color: 'amber' };
   if (lowerUrl.startsWith('hysteria2://') || lowerUrl.startsWith('hy2://')) return { name: 'HY2', color: 'purple' };
   if (lowerUrl.startsWith('hysteria://') || lowerUrl.startsWith('hy://')) return { name: 'Hysteria', color: 'fuchsia' };
   if (lowerUrl.startsWith('ssr://')) return { name: 'SSR', color: 'rose' };
@@ -147,6 +148,7 @@ const colorMap = {
 
 const protocolColorMap = {
   slate: 'text-slate-500 dark:text-slate-400',
+  amber: 'text-amber-500 dark:text-amber-400',
   purple: 'text-purple-500 dark:text-purple-400',
   fuchsia: 'text-fuchsia-500 dark:text-fuchsia-400',
   rose: 'text-rose-500 dark:text-rose-400',

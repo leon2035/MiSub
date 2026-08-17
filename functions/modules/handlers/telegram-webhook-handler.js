@@ -166,7 +166,7 @@ function extractNodeUrls(text) {
     const protocols = [
         'ss://', 'ssr://', 'vmess://', 'vless://', 'trojan://',
         'hysteria://', 'hysteria2://', 'hy2://', 'tuic://', 'snell://',
-        'anytls://', 'wireguard://', 'socks5://', 'socks5-tls://'
+        'anytls://', 'mieru://', 'mierus://', 'wireguard://', 'socks5://', 'socks5-tls://'
     ];
     const urls = [];
     const lines = text.split('\n');

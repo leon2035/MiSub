@@ -7,6 +7,7 @@ import { convertTuicToUrl } from './converters/tuic.js';
 import { convertSocks5ToUrl } from './converters/socks5.js';
 import { convertHttpToUrl } from './converters/http.js';
 import { convertWireguardToUrl } from './converters/wireguard.js';
+import { convertMieruToUrl } from './converters/mieru.js';
 
 /**
  * 转换Clash代理配置为标准URL
@@ -42,6 +43,8 @@ export function convertClashProxyToUrl(proxy) {
             return convertHttpToUrl(proxy);
         case 'wireguard':
             return convertWireguardToUrl(proxy);
+        case 'mieru':
+            return convertMieruToUrl(proxy);
         default:
             console.warn(`不支持的代理类型: ${type}`);
             return null;

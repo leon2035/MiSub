@@ -290,7 +290,7 @@ functions/utils/format-utils.js            # UA/URL 格式判断辅助
 
 ```text
 ss, ssr, vmess, vless, trojan, hysteria, hysteria2, tuic,
-snell, anytls, socks, wireguard, naive
+snell, anytls, mieru, socks, wireguard, naive
 ```
 
 开发协议相关修复时，应优先补充回归测试，覆盖至少一个完整回环：

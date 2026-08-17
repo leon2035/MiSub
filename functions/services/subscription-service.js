@@ -35,6 +35,8 @@ const REAL_PROXY_PROTOCOLS = [
     'hy2://',
     'tuic://',
     'anytls://',
+    'mieru://',
+    'mierus://',
     'socks5://',
     'socks://',
     'wireguard://'

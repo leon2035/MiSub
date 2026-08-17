@@ -10,6 +10,8 @@ const NODE_PROTOCOLS = [
   'hy2',
   'tuic',
   'anytls',
+  'mieru',
+  'mierus',
   'socks5',
   'socks',
   'snell',
